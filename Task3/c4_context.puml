@@ -1,0 +1,20 @@
+@startuml 
+!include <C4/C4_Context>
+
+Person(client, "Клиент", "Заявка на депозит")
+System_Boundary(bank_infrastructure, "Инфраструктура банка") {
+    System(site, "Сайт", "Создание заявок")
+    System(online_bank, "Интернет-банк", "Онлайн-заявки + SMS")
+    System(abs, "АБС", "Обработка депозитов")
+    System(call_center, "Кол-центр", "CRM для заявок")
+}
+
+System_Ext(sms_gateway, "SMS-шлюз", "Внешний сервис телеком-оператора")
+
+Rel(client, site, "Оставляет заявку")
+Rel(client, online_bank, "Открывает депозит")
+Rel(site, call_center, "Передаёт заявку", "Kafka")
+Rel(online_bank, abs, "Отправляет заявку", "Kafka")
+Rel(abs, sms_gateway, "Уведомляет клиента", "REST")
+Rel(sms_gateway, client, "Уведомления с кодом", "SMS")
+@enduml

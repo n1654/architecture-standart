@@ -1,0 +1,27 @@
+@startuml 
+!include <C4/C4_Context>
+
+Person(admin_abs, "Администратор АБС", "Настраивает доступы")
+Person(operator, "Оператор кол-центра", "Консультирует клиентов")
+
+System_Boundary(bank, "Банк") {
+    System(abs, "АБС", "Хранение ставок + управление доступом")
+    System(auth_service, "Сервис авторизации", "LDAP")
+    System(sftp, "SFTP-сервер", "Обмен файлами с партнёрами")
+    System(internal_callcenter, "Кол-центр банка", "Внутренняя CRM")
+}
+
+System_Ext(partner_callcenter, "Партнёрский кол-центр", "Внешняя CRM")
+
+Rel(admin_abs, abs, "Настраивает роли", "UI")
+Rel(abs, auth_service, "Проверка прав", "LDAP")
+Rel(operator, abs, "Запрашивает ставки", "API (read-only)")
+
+Rel(abs, sftp, "Экспорт ставок (CSV)", "Ежедневно")
+Rel(sftp, partner_callcenter, "Передача файла", "SFTP")
+Rel(abs, internal_callcenter, "Синхронизация ставок", "CSV-импорт")
+
+Rel(operator, internal_callcenter, "Просмотр ставок", "UI")
+Rel(operator, partner_callcenter, "Уточнение данных", "Телефон")
+
+@enduml

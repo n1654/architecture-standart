@@ -1,0 +1,35 @@
+@startuml 
+!include <C4/C4_Component>
+
+System_Boundary(banking_systems, "Банковские системы") {
+    System_Boundary(abs, "АБС") {
+        Component(rates_module, "Модуль ставок", "PL-SQL", "Хранение и расчёт ставок")
+        Component(file_export, "Экспорт в CSV", "Python", "Создание файлов")
+        Component(auth_gateway, "Шлюз авторизации", "C#", "Проверка ролей (RBAC)")
+        Component(admin_ui, "Админ-панель", "ASP.NET", "Управление доступом")
+    }
+    
+    System_Boundary(sftp_server, "SFTP-сервер") {
+        Component(sftp_service, "SFTP-служба", "OpenSSH", "Приём/отправка файлов")
+    }
+    
+    System(auth_service, "Active Directory", "LDAP", "Аутентификация")
+    
+    System(internal_callcenter, "Внутренний кол-центр", "CRM банка")
+}
+
+System_Ext(partner_callcenter, "Партнёрский кол-центр", "Внешняя CRM")
+
+
+Rel(admin_ui, auth_gateway, "Настройка прав", "REST API")
+Rel(auth_gateway, auth_service, "Проверка учётных записей", "LDAP")
+Rel(rates_module, auth_gateway, "Запрос авторизации", "JWT")
+
+Rel(rates_module, file_export, "Данные ставок", "SFTP")
+Rel(file_export, sftp_service, "Загрузка файла", "SFTP")
+Rel(sftp_service, partner_callcenter, "Передача файла", "SFTP")
+Rel(rates_module, internal_callcenter, "Синхронизация данных", "CSV-импорт")
+
+Rel(internal_callcenter, rates_module, "Запрос ставок", "API (read-only)")
+
+@enduml

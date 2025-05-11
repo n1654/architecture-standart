@@ -1,0 +1,25 @@
+@startuml
+!include <C4/C4_Container>
+
+Person(client, "Клиент", "Создаёт заявку")
+
+System_Boundary(abs, "АБС") {
+    Container(deposit_module, "Модуль депозитов", "PL-SQL", "Расчёт ставок")
+    Container(queue, "Очередь заявок", "Kafka", "Буферизация")
+}
+
+System_Boundary(online_bank, "Интернет-банк") {
+    Container(webui, "Web-интерфейс", "React.js", "Отображение депозитов")
+    Container(api, "API", "ASP.NET Core", "Обработка заявок")
+    Container(sms_service, "SMS-сервис", "Интеграция со шлюзом")
+}
+
+System_Ext(sms_gateway, "SMS-шлюз", "Внешний сервис телеком-оператора")
+
+Rel(client, webui, "Подаёт заявку", "HTTPS")
+Rel(api, queue, "Отправляет заявку", "Kafka")
+Rel(queue, deposit_module, "Обрабатывает заявку", "PL-SQL")
+Rel(deposit_module, sms_service, "Запускает уведомление", "REST")
+Rel(sms_service, sms_gateway, "Отправка SMS", "API")
+Rel(sms_gateway, client, "Уведомления с кодом", "SMS")
+@enduml
